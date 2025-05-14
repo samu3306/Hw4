@@ -10,7 +10,7 @@ import os
 
 app = Flask(__name__)
 
-# 👉 記憶體中儲存歷史對話
+#儲存歷史對話
 message_history = []
 
 # 替換成你的 LINE Bot token 和 secret
@@ -37,7 +37,7 @@ def callback():
 
     return 'OK'
 
-# ✅ Gemini 回覆函式
+# Gemini 回覆
 def get_gemini_response(user_message):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
     headers = {
@@ -67,7 +67,7 @@ def get_gemini_response(user_message):
     except Exception:
         return "AI 回應異常，請稍後再試。"
 
-# ✅ 處理 LINE 文字訊息
+#LINE 文字訊息
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_id = event.source.user_id
@@ -99,7 +99,7 @@ def handle_message(event):
         reply_text = get_gemini_response(message)
         output = TextSendMessage(text=reply_text)
 
-        # ✅ 儲存歷史對話
+        # 儲存歷史對話
         message_history.append({
             'user': user_id,
             'message': message,
@@ -109,7 +109,7 @@ def handle_message(event):
     # 回覆使用者
     line_bot_api.reply_message(event.reply_token, output)
 
-# ✅ RESTful API：儲存使用者訊息（可手動送入）
+# RESTful API：儲存使用者訊息
 @app.route('/messages', methods=['POST'])
 def save_message():
     data = request.get_json()
@@ -123,18 +123,18 @@ def save_message():
     message_history.append({'user': user, 'message': message, 'reply': reply})
     return jsonify({'status': 'Message saved'}), 201
 
-# ✅ RESTful API：取得所有歷史訊息
+# RESTful API：取得所有歷史訊息
 @app.route('/messages', methods=['GET'])
 def get_messages():
     return jsonify(message_history), 200
 
-# ✅ RESTful API：刪除所有對話紀錄
+# RESTful API：刪除所有對話紀錄
 @app.route('/messages', methods=['DELETE'])
 def delete_messages():
     message_history.clear()
     return jsonify({'status': 'All messages deleted'}), 200
 
-# ✅ 啟動伺服器
+# 啟動伺服器
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Render 會提供 PORT 環境變數
     app.run(host="0.0.0.0", port=port)
